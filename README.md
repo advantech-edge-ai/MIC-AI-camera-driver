@@ -1,4 +1,4 @@
-# Camera Drivers
+# Camera Drivers for MIC-AI Series
 
 This repository is the download center for Advantech MIC-AI camera drivers. It contains:
 
