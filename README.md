@@ -23,8 +23,8 @@ This repository is the download center for Advantech MIC-AI camera drivers. It c
 **1. Download the script**
 
 ```bash
-git clone https://github.com/advantech-edge-ai/camera-driver.git
-cd camera-driver
+git clone https://github.com/advantech-edge-ai/MIC-AI-camera-driver.git
+cd MIC-AI-camera-driver
 ```
 
 **2. Run the script**
