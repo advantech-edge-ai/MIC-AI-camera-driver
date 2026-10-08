@@ -7,6 +7,13 @@
 #   INTERNET_PROBE   URL tested to decide whether GitHub is reachable
 #   INTERNET_LIST    key = <vendor>/<sensor>/<platform>/<board>/<jetpack>
 #                    val = release-asset download URL
+#   BOARD_LABEL      board key value    -> name shown in the menu
+#   PLATFORM_LABEL   platform key value -> name shown in the menu
+#
+# Keys are what the script matches against the device and uses for install
+# paths; keep them as they are. To change how a board / platform is shown
+# in the menu, edit only the *_LABEL tables. A value missing from a table is
+# shown as the raw key value.
 #
 # Only the releases that currently exist on GitHub are listed. When a new
 # release is published, add one line here (and, for offline use, mirror the
@@ -26,7 +33,7 @@ declare -gA INTERNET_LIST=(
   ["otobrite/imx728/orin_nx_orin_nano/mic_711/jp6.2"]="https://github.com/advantech-edge-ai/camera-driver/releases/download/otobrite-imx728-mic_711_jetpack_6.2_v1.0.0-v1/MIC-711_Orin_6.2_V1.0.0_Otobrite_IMX728_V1.tbz2"
   ["otobrite/isx031/orin_nx_orin_nano/mic_711/jp6.2"]="https://github.com/advantech-edge-ai/camera-driver/releases/download/otobrite-isx031-mic_711_jetpack_6.2_v1.0.0-v1/MIC-711_Orin_6.2_V1.0.0_Otobrite_ISX031_V1.tbz2"
   ["sensing/universal/orin_nx_orin_nano/mic_713/jp6.2"]="https://github.com/advantech-edge-ai/camera-driver/releases/download/sensing-universal-mic-713_orin_nx_jetpack_6.2_v1.0.0-v1/MIC_Orin_NX_JP6.2_Sensing_Universal_V1.0.0.zip"
-  ["sensing/universal/orin_nx_orin_nano/mic_712/jp6.2"]="https://github.com/advantech-edge-ai/camera-driver/releases/download/sensing-universal-mic-712ar_orin_nx_jetpack_6.2_v1.0.0-v1/MIC-712AR_Orin_NX_JP6.2_Sensing_Universal_V1.0.0.zip"
+  ["sensing/universal/orin_nx_orin_nano/mic_712ar/jp6.2"]="https://github.com/advantech-edge-ai/camera-driver/releases/download/sensing-universal-mic-712ar_orin_nx_jetpack_6.2_v1.0.0-v1/MIC-712AR_Orin_NX_JP6.2_Sensing_Universal_V1.0.0.zip"
   ["econ/STURDeCAM25/agx_orin/mic_733ao/jp6.2"]="https://github.com/advantech-edge-ai/camera-driver/releases/download/econ-cam25-mic-733ao_jp6.2_v1.0.0-v1/MIC-733AO_32G_Orin_6.2_v1.0.0_Econ_Cam25_V1.tbz2"
   ["econ/STURDeCAM25/orin_nx_orin_nano/mic_713/jp6.2"]="https://github.com/advantech-edge-ai/camera-driver/releases/download/econ-cam25-mic-713_jp6.2_v1.0.1-v1/MIC-713_OrinNX_6.2.0_v1.0.1_Econ_Cam25_V1.tbz2"
   ["econ/STURDeCAM31/orin_nx_orin_nano/mic_713/jp6.2"]="https://github.com/advantech-edge-ai/camera-driver/releases/download/econ-cam31-mic-713_jp6.2_v1.0.1-v1/MIC-713_OrinNX_6.2.0_v1.0.1_Econ_Cam31_V1.tbz2"
@@ -44,4 +51,22 @@ declare -gA INTERNET_LIST=(
   ["econ/STURDeCAM31/thor/mic_743/jp7.0"]="https://github.com/advantech-edge-ai/camera-driver/releases/download/econ-cam31-mic-743-jp7.0_v1-v1/STURDeCAM31_CUTAGX_CXLC_AT_JETSON_L4T38.2.0_30-JAN-2026_R01_RC1.tar.gz"
   ["realsense/D457/thor/mic_742/jp7.0"]="https://github.com/advantech-edge-ai/camera-driver/releases/download/realsense-mic_742_jetpack_7.0_v1.0.0-v2/AI_MIC-742_Thor_7.0_V1.0.0_Realsense_D457_V2.tbz2"
   ["realsense/D457/thor/mic_742/jp7.2"]="https://github.com/advantech-edge-ai/camera-driver/releases/download/realsense-mic_742_jetpack_7.2_v1.0.0-v1/AI_MIC-742_Thor_7.2_V1.0.0_Realsense_D457_V1.tbz2"
+)
+
+# menu display names (does not affect device matching or install paths)
+declare -gA BOARD_LABEL=(
+  ["mic_711"]="MIC-711"
+  ["mic_712ar"]="MIC-712AR"
+  ["mic_713"]="MIC-713"
+  ["mic_732"]="MIC-732"
+  ["mic_733ao"]="MIC-733AO"
+  ["mic_741"]="MIC-741"
+  ["mic_742"]="MIC-742"
+  ["mic_743"]="MIC-743"
+)
+
+declare -gA PLATFORM_LABEL=(
+  ["orin_nx_orin_nano"]="Orin NX / Orin Nano"
+  ["agx_orin"]="AGX Orin"
+  ["thor"]="AGX Thor"
 )
