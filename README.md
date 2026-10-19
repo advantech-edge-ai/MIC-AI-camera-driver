@@ -4,19 +4,19 @@ This repository is the download center for Advantech MIC-AI camera drivers. It c
 
 - **Auto-install script** (`install_camera.sh` + `online_mode.sh`): select your camera from a menu, and the script downloads and installs the correct driver for your system.
 - **Driver list** (`internet_list.sh`): the list of driver packages the script can download. The script always reads the latest version of this file from GitHub.
-- **Driver packages**: stored as [GitHub Releases](https://github.com/advantech-edge-ai/camera-driver/releases).
+- **Driver packages**: stored as [GitHub Releases](https://github.com/advantech-edge-ai/MIC-AI-camera-driver/releases).
 
 ## Requirements
 
-- An Advantech MIC-AI system running the **Advantech BSP image** (the script reads the board model and JetPack version from `/opt/version`)
+- An Advantech MIC-AI system running the **Advantech BSP image** (the script reads the board model and JetPack or IGX version from `/opt/version`)
 - Supported boards:
-  - Orin Nano / Orin NX: MIC-711, MIC-713
+  - Orin Nano / Orin NX: MIC-711, MIC-712AR, MIC-713
   - AGX Orin: MIC-732, MIC-733AO
-  - AGX Thor: MIC-741, MIC-742, MIC-743
+  - AGX Thor: MIC-735AR (IGX 2.0), MIC-741, MIC-742, MIC-743, MIC-743RB
 - Internet access to `github.com`
 - `sudo` permission
 
-> A camera driver is available only for specific board and JetPack combinations. Check the [Releases](https://github.com/advantech-edge-ai/camera-driver/releases) page or `internet_list.sh` to confirm your combination is supported.
+> A camera driver is available only for specific board and JetPack combinations. Check the [Releases](https://github.com/advantech-edge-ai/MIC-AI-camera-driver/releases) page or `internet_list.sh` to confirm your combination is supported.
 
 ## Quick Start
 
@@ -37,7 +37,7 @@ sudo bash install_camera.sh
 
 1. Select the camera **Vendor** (for example: `otobrite`)
 2. Select the camera **Sensor** (for example: `imx728`)
-3. Select the package for your board and JetPack (for example: `agx_orin/mic_733ao/jp6.2`)
+3. Select your **system model** and JetPack version (for example: `MIC-733AO  AGX Orin  JP6.2`). This menu is shown even when only one model is available, so you can confirm the driver is for your system
 4. The script checks that the package matches your system (see [Device Check](#device-check))
 5. Confirm with `y` to download and install
 
@@ -73,15 +73,10 @@ After you select a package, the script compares it with your system before anyth
 - **Install one camera driver per system.** Installing a second driver, or the same driver again, may conflict with the previous one. To change to a different camera, reflash the Advantech BSP image first.
 - Messages such as `Internal server (gitlab) not reachable` and `No bundled vendors/ tree` are normal. The script uses GitHub as the download source.
 
-## Manual Download (Advanced)
+## Manual Download
 
-If you cannot use the auto-install script:
-
-1. Go to the [Releases](https://github.com/advantech-edge-ai/camera-driver/releases) page.
-2. Find the release for your board, JetPack version, and camera (search by board model, vendor, or sensor name, for example `MIC-733AO`, `Otobrite`, `IMX728`).
-3. Download the driver package. If the release includes a `.md5sum` file, verify the download with `md5sum -c <file>.md5sum`.
-4. Follow the installation steps in the PDF document included in the release.
+The auto-install script is the recommended way to install a driver. The driver packages are also available on the [Releases](https://github.com/advantech-edge-ai/MIC-AI-camera-driver/releases) page.
 
 ## Questions
 
-If you have questions about a driver package or the installation process, please open an [Issue](https://github.com/advantech-edge-ai/camera-driver/issues) in this repository.
+If you have questions about a driver package or the installation process, please open an [Issue](https://github.com/advantech-edge-ai/MIC-AI-camera-driver/issues) in this repository.
