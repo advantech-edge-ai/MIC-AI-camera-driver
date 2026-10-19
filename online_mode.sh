@@ -9,7 +9,7 @@
 # unreachable (never a hard failure unless all three are empty):
 #
 #   github - live-fetched from
-#            https://github.com/advantech-edge-ai/camera-driver/raw/refs/heads/main/internet_list.sh
+#            https://github.com/advantech-edge-ai/MIC-AI-camera-driver/raw/refs/heads/main/internet_list.sh
 #            (falls back to the bundled internet_list.sh if the fetch fails)
 #   gitlab - internal_list.sh (the company internal file server / GitLab file
 #            host at 172.17.4.45:6001)
@@ -24,7 +24,10 @@
 #
 # The Vendor -> Sensor menu is the UNION of all three sources and tags each
 # item with the source(s) it was found in, e.g. "(github,gitlab,local)".
-# After a sensor is picked the operator picks one board/JetPack variant.
+# After a sensor is picked the operator picks one system model / JetPack
+# variant; that menu lists the system model name first (BOARD_LABEL /
+# PLATFORM_LABEL from internet_list.sh) and is shown even when only one
+# variant exists, so the operator always sees which platform it is for.
 # The machine is NOT checked at start-up; only once a package is selected is
 # it compared against the device (/opt/version model + JetPack, TEGRA_CHIPID):
 # wrong SoC family -> refused; different board / JetPack / unreadable
@@ -47,7 +50,7 @@ CACHE_DIR="${CF_CACHE_DIR:-/opt/advantech/camera_framework/download}"
 LOG_DIR="${SCRIPT_DIR}/logs"
 VERSION_FILE="${CF_VERSION_FILE:-/opt/version}"
 NV_BOOT_CONF="${CF_NV_BOOT_CONF:-/etc/nv_boot_control.conf}"
-GITHUB_LIST_RAW_URL="https://github.com/advantech-edge-ai/camera-driver/raw/refs/heads/main/internet_list.sh"
+GITHUB_LIST_RAW_URL="https://github.com/advantech-edge-ai/MIC-AI-camera-driver/raw/refs/heads/main/internet_list.sh"
 
 mkdir -p "${LOG_DIR}"
 LOG_FILE="${LOG_DIR}/online_mode_$(date +%Y%m%d_%H%M%S).log"
@@ -77,6 +80,14 @@ dir_to_platform() { [[ "$1" == "agx_thor" ]] && echo "thor" || echo "$1"; }
 # vendors with no <sensor> level in the bundled tree - a synthetic sensor
 # token (GitHub's spelling) keeps the 5-segment key shape across sources.
 declare -gA LOCAL_SYNTH_SENSOR=( ["realsense"]="D457" )
+
+# menu display names; internet_list.sh (live GitHub copy first) fills
+# BOARD_LABEL / PLATFORM_LABEL. A board missing there is derived from the key
+# (mic_733ao -> MIC-733AO), a platform missing there is shown as is.
+declare -gA BOARD_LABEL=() PLATFORM_LABEL=()
+board_label()    { local b="$1"; [[ -n "${BOARD_LABEL[$b]:-}" ]] && { echo "${BOARD_LABEL[$b]}"; return; }; b="${b^^}"; echo "${b//_/-}"; }
+platform_label() { echo "${PLATFORM_LABEL[$1]:-$1}"; }
+key_label()      { printf '%-10s %-20s %s' "$(board_label "$(key_board "$1")")" "$(platform_label "$(key_platform "$1")")" "$(key_jetpack "$1" | sed 's/^jp/JP/; s/^igx/IGX/')"; }
 
 # ---------------------------------------------------------------------------
 # device check - run only once a package has been selected
@@ -125,7 +136,7 @@ check_device_for_key() {
     {
         echo
         echo "!! Device / driver mismatch warning !!"
-        echo "  Selected driver : ${key}"
+        echo "  Selected driver : $(key_label "${key}" | tr -s ' ')  [${key}]"
         for p in "${problems[@]}"; do echo "  - ${p}"; done
         echo "  Installing a driver built for a different product model / JetPack may"
         echo "  leave the device unable to boot or with the camera non-functional."
@@ -279,22 +290,22 @@ pick_package() {
     local vendor="$1" sensor="$2"
     TARGET_KEY=""
 
+    # sorted by system model, then JetPack
     local -a variants
-    mapfile -t variants < <(all_keys | awk -F/ -v v="${vendor}" -v s="${sensor}" '$1==v && $2==s')
+    mapfile -t variants < <(all_keys | awk -F/ -v v="${vendor}" -v s="${sensor}" '$1==v && $2==s {print $4" "$5"\t"$0}' \
+                            | sort -V | cut -f2)
 
     [[ "${#variants[@]}" -gt 0 ]] || return 1
-    if [[ "${#variants[@]}" -eq 1 ]]; then
-        TARGET_KEY="${variants[0]}"
-        return 0
-    fi
 
+    # always a menu, even for a single variant: the operator must see (and
+    # confirm) which system model the driver is built for
     local -a labels=()
     local v
     for v in "${variants[@]}"; do
-        labels+=("$(key_platform "${v}")/$(key_board "${v}")/$(key_jetpack "${v}")  ($(sources_for "${v}"))")
+        labels+=("$(key_label "${v}")  ($(sources_for "${v}"))")
     done
     local chosen
-    chosen="$(show_menu "Select package for [${vendor}/${sensor}]" "${labels[@]}")" || return 2
+    chosen="$(show_menu "Select system model for [${vendor}/${sensor}]" "${labels[@]}")" || return 2
     local idx
     for idx in "${!labels[@]}"; do
         [[ "${labels[$idx]}" == "${chosen}" ]] && { TARGET_KEY="${variants[$idx]}"; break; }
@@ -314,7 +325,7 @@ select_source() {
         printf '%s\n' "${avail[0]}"
         return 0
     fi
-    show_menu "Select download source for [${key}]" "${avail[@]}"
+    show_menu "Select download source for [$(key_label "${key}" | tr -s ' ')]" "${avail[@]}"
 }
 
 # ---------------------------------------------------------------------------
@@ -350,11 +361,16 @@ download_and_install() {
         *) err "Unsupported archive type: ${asset}" ; rm -rf "${stage}" ; return 1 ;;
     esac || { err "Failed to extract ${asset}" ; rm -rf "${stage}" ; return 1 ; }
 
-    # locate the real package dir (installers ship at varying nesting depth)
+    # locate the real package dir (installers ship at varying nesting depth);
+    # take the SHALLOWEST match - packages with bundled kernel headers also
+    # carry headers/.../scripts/install.sh deeper down. Stereolabs JP7 packages
+    # are just a .deb + README -> the .deb dir is the package.
     local entry pkg
-    entry="$(find "${stage}" -maxdepth 5 -type f -name install.sh | head -n1)"
-    [[ -z "${entry}" ]] && entry="$(find "${stage}" -maxdepth 5 -type f -name install_binaries.sh | head -n1)"
-    [[ -n "${entry}" ]] || { err "No install.sh / install_binaries.sh inside ${asset}" ; rm -rf "${stage}" ; return 1 ; }
+    shallowest() { find "${stage}" -maxdepth 5 -type f -name "$1" -printf '%d %p\n' | sort -n | head -n1 | cut -d' ' -f2- ; }
+    entry="$(shallowest install.sh)"
+    [[ -z "${entry}" ]] && entry="$(shallowest install_binaries.sh)"
+    [[ -z "${entry}" ]] && entry="$(shallowest '*.deb')"
+    [[ -n "${entry}" ]] || { err "No install.sh / install_binaries.sh / .deb inside ${asset}" ; rm -rf "${stage}" ; return 1 ; }
     pkg="$(dirname "${entry}")"
 
     log "Installing into : ${dest}"
@@ -366,7 +382,8 @@ download_and_install() {
     (
         cd "${dest}"
         if [[ -f install.sh ]]; then bash ./install.sh
-        else bash ./install_binaries.sh
+        elif [[ -f install_binaries.sh ]]; then bash ./install_binaries.sh
+        else apt-get install -y ./*.deb
         fi
     ) 2>&1 | tee -a "${LOG_FILE}"
 }
