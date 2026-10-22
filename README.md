@@ -80,3 +80,7 @@ The auto-install script is the recommended way to install a driver. The driver p
 ## Questions
 
 If you have questions about a driver package or the installation process, please open an [Issue](https://github.com/advantech-edge-ai/MIC-AI-camera-driver/issues) in this repository.
+
+## Next Step
+
+
