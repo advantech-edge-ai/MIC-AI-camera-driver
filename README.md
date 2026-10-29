@@ -83,7 +83,7 @@ If you have questions about a driver package or the installation process, please
 
 ## Next Step
 
-After you successfully integrating cameras, you might be interesting in browsing [Advantech Solution Pilot](https://github.com/advantech-EdgeAI). It is a set of software services built on the MIC-AI series, offering an intuitive and flexible SDK compatible with JetPack 6.0 and above.
+After you successfully integrate cameras, you might be interested in browsing the [Advantech Solution Pilot](https://github.com/advantech-EdgeAI). It is a set of software services built on the MIC-AI series, offering an intuitive and flexible SDK compatible with JetPack 6.0 and above.
 
 > [!TIP]
 > Want to get the latest news and updates? [Subscribe to our newsletter](https://subscribe.advantechsae.online/)
